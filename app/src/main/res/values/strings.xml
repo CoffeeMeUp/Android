@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Coffee Me Up</string>
-    <string name="hour">Horário para despertar:</string>
-    <string name="click_me">CLICK ME</string>
+    <string name="hour">Hora:</string>
+    <string name="send">Enviar</string>
+    <string name="host_ip">Host IP:</string>
+    <string name="define_ip">Definir IP</string>
+    <string name="invalid_ip">IP inválido</string>
 </resources>

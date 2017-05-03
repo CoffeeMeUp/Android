@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -30,18 +31,21 @@ public class MainActivity extends AppCompatActivity {
     protected Handler      updateConversationHandler;
     protected Thread       serverThread = null;
 
-    protected static final int    PORT           = 5000;
-    protected static final String HOST           = "192.168.43.189";  // Pedro's phone
+    protected static int    PORT = 5000;
+//    protected static String host = "192.168.43.189";  // Pedro's phone
+    protected static String host = "192.168.0.13";   // Pedro's house
+
     protected static final String HOUR_HEADER    = "hora:";
     protected static final String PAYLOAD_SUFFIX = "\r\n";
-//    protected static final String HOST = "192.168.0.13";   // Pedro's house
 
     private Socket  socket;
     private boolean connected = false;
 
     private Button   button;    // msg sender
+    private Button   defineIpBtn;
     private TextView text;      // msgs recieved from the server
     private EditText hourText;  // hour to be woken up
+    private EditText hostIpText;
 
     @Override
     protected void onStop()
@@ -70,33 +74,57 @@ public class MainActivity extends AppCompatActivity {
                 new ClientThread().execute();
             }
         });
+
+        hostIpText  = (EditText) findViewById(R.id.host_ip);
+        defineIpBtn = (Button) findViewById(R.id.define_ip);
+        defineIpBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                host = hostIpText.getText().toString();
+                Log.d("IP DEFINE", host);
+                Toast.makeText(getApplicationContext(), "IP definido para " + host,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
-    class ClientThread extends AsyncTask<Void, Void, Void> {
+    private class ClientThread extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... params)
         {
             try {
-                socket = new Socket(HOST, PORT);
+                socket = new Socket(host, PORT);
                 OutputStream os = socket.getOutputStream();
                 String msg = hourText.getText().toString();
                 String payload = HOUR_HEADER + msg + PAYLOAD_SUFFIX;
                 os.write(payload.getBytes(Charset.forName("UTF-8")));
             } catch (IOException e) {
+                Handler handler = new Handler(getApplicationContext().getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), R.string.invalid_ip,
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
                 e.printStackTrace();
+            } catch (RuntimeException e) {
+                Log.d("SOCKET OPEN", "Socket doesn't exists");
             } finally {
                 try {
                     socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (RuntimeException e) {
+                    Log.d("SOCKET CLOSE", "Could not close socket");
                 }
             }
             return null;
         }
     }
 
-    class ServerThread implements Runnable {
+    private class ServerThread implements Runnable {
 
         @Override
         public void run() {
@@ -111,19 +139,19 @@ public class MainActivity extends AppCompatActivity {
                     socket = serverSocket.accept();
                     CommunicationThread communicationThread = new CommunicationThread(socket);
                     new Thread(communicationThread).start();
-                } catch (IOException e) {
+                } catch (IOException | NullPointerException e) {
                     e.printStackTrace();
                 }
             }
         }
     }
 
-    class CommunicationThread implements Runnable {
+    private class CommunicationThread implements Runnable {
 
         private Socket clientSocket;
         private BufferedReader input;
 
-        public CommunicationThread(Socket clientSocket)
+        CommunicationThread(Socket clientSocket)
         {
             this.clientSocket = clientSocket;
             try {
@@ -148,11 +176,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class UpdateUIThread implements Runnable {
+    private class UpdateUIThread implements Runnable {
 
         private String msg;
 
-        public UpdateUIThread(String msg)
+        UpdateUIThread(String msg)
         {
             this.msg = msg;
         }
