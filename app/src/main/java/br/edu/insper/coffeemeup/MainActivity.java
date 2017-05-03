@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -29,25 +30,23 @@ public class MainActivity extends AppCompatActivity {
     protected Handler      updateConversationHandler;
     protected Thread       serverThread = null;
 
-    protected static final int    PORT = 5000;
-    protected static final String HOST = "192.168.43.189";  // Pedro's phone
+    protected static final int    PORT           = 5000;
+    protected static final String HOST           = "192.168.43.189";  // Pedro's phone
+    protected static final String HOUR_HEADER    = "hora:";
+    protected static final String PAYLOAD_SUFFIX = "\r\n";
 //    protected static final String HOST = "192.168.0.13";   // Pedro's house
 
     private Socket  socket;
     private boolean connected = false;
 
-    private Button button;  // msg sender
-    private TextView text;  // msgs recieved from the server
+    private Button   button;    // msg sender
+    private TextView text;      // msgs recieved from the server
+    private EditText hourText;  // hour to be woken up
 
     @Override
     protected void onStop()
     {
         super.onStop();
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -55,16 +54,16 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        openSocket();
 
-//        // msg receiver
+        // msg receiver
         updateConversationHandler = new Handler();
         this.serverThread = new Thread(new ServerThread());
         this.serverThread.start();
         text = (TextView) findViewById(R.id.txt_msg);
 
         // msg sender
-        button = (Button) findViewById(R.id.button);
+        hourText = (EditText) findViewById(R.id.hour_text);
+        button   = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -78,16 +77,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params)
         {
-            Log.d("Beg Client Thread", "Start now");
             try {
                 socket = new Socket(HOST, PORT);
-                Log.d("SOCKET CONNECTION", "socket created");
                 OutputStream os = socket.getOutputStream();
-                String msg = "hora:07:30\r\n";
-                os.write(msg.getBytes(Charset.forName("UTF-8")));
-                Log.d("SOCKET CONNECTION", "Socket connection successful!");
+                String msg = hourText.getText().toString();
+                String payload = HOUR_HEADER + msg + PAYLOAD_SUFFIX;
+                os.write(payload.getBytes(Charset.forName("UTF-8")));
             } catch (IOException e) {
-                Log.d("SOCKET CONNECTION", "Socket connection erorr");
                 e.printStackTrace();
             } finally {
                 try {
