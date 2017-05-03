@@ -30,8 +30,8 @@ public class MainActivity extends AppCompatActivity {
     protected Thread       serverThread = null;
 
     protected static final int    PORT = 5000;
-//    protected static final String HOST = "192.168.43.189";  // Pedro's phone
-    protected static final String HOST = "192.168.0.13";   // Pedro's house
+    protected static final String HOST = "192.168.43.189";  // Pedro's phone
+//    protected static final String HOST = "192.168.0.13";   // Pedro's house
 
     private Socket  socket;
     private boolean connected = false;
@@ -58,10 +58,10 @@ public class MainActivity extends AppCompatActivity {
 //        openSocket();
 
 //        // msg receiver
-//        updateConversationHandler = new Handler();
-//        this.serverThread = new Thread(new ServerThread());
-//        this.serverThread.start();
-//        text = (TextView) findViewById(R.id.txt_msg);
+        updateConversationHandler = new Handler();
+        this.serverThread = new Thread(new ServerThread());
+        this.serverThread.start();
+        text = (TextView) findViewById(R.id.txt_msg);
 
         // msg sender
         button = (Button) findViewById(R.id.button);
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 socket = new Socket(HOST, PORT);
                 Log.d("SOCKET CONNECTION", "socket created");
                 OutputStream os = socket.getOutputStream();
-                String msg = "hora:07:30";
+                String msg = "hora:07:30\r\n";
                 os.write(msg.getBytes(Charset.forName("UTF-8")));
                 Log.d("SOCKET CONNECTION", "Socket connection successful!");
             } catch (IOException e) {
