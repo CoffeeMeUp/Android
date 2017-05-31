@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     protected Handler      updateConversationHandler;
     protected Thread       serverThread = null;
 
-    protected static int    PORT = 5000;
+    protected static int    PORT = 6666;
 //    protected static String host = "192.168.43.189";  // Pedro's phone
     protected static String host = "192.168.0.13";   // Pedro's house
 
