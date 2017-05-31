@@ -4,7 +4,7 @@
 import socket
 
 HOST = '192.168.43.189'       # Hostname to bind
-PORT = 5000              # Open non-privileged port 8888
+PORT = 6666              # Open non-privileged port 8888
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))

@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button   button;    // msg sender
     private Button   defineIpBtn;
+    private Button   butCoffeeOn;
+    private Button   butCoffeeOff;
     private TextView text;      // msgs recieved from the server
     private EditText hourText;  // hour to be woken up
     private EditText hostIpText;
@@ -63,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
         updateConversationHandler = new Handler();
         this.serverThread = new Thread(new ServerThread());
         this.serverThread.start();
-        text = (TextView) findViewById(R.id.txt_msg);
 
         // msg sender
         hourText = (EditText) findViewById(R.id.hour_text);
@@ -71,7 +72,25 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new ClientThread().execute();
+                String msg = hourText.getText().toString();
+                String payload = HOUR_HEADER + msg + PAYLOAD_SUFFIX;
+                new ClientThread().execute(payload);
+            }
+        });
+
+        butCoffeeOff = (Button) findViewById(R.id.coffee_off);
+        butCoffeeOff.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ClientThread().execute("Cafeteria OFF\r\n");
+            }
+        });
+
+        butCoffeeOn = (Button) findViewById(R.id.coffee_on);
+        butCoffeeOn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ClientThread().execute("Cafeteria ON\r\n");
             }
         });
 
@@ -88,17 +107,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private class ClientThread extends AsyncTask<Void, Void, Void> {
+    private class ClientThread extends AsyncTask<String, Void, Void> {
 
         @Override
-        protected Void doInBackground(Void... params)
+        protected Void doInBackground(String... params)
         {
             try {
                 socket = new Socket(host, PORT);
                 OutputStream os = socket.getOutputStream();
-                String msg = hourText.getText().toString();
-                String payload = HOUR_HEADER + msg + PAYLOAD_SUFFIX;
-                os.write(payload.getBytes(Charset.forName("UTF-8")));
+                os.write(params[0].getBytes(Charset.forName("UTF-8")));
             } catch (IOException e) {
                 Handler handler = new Handler(getApplicationContext().getMainLooper());
                 handler.post(new Runnable() {
